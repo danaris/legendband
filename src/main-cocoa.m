@@ -1295,7 +1295,7 @@ static void Term_init_cocoa(term *t)
     /* Set its title and, for auxiliary terms, tentative size */
     if (termIdx == 0)
     {
-        [window setTitle:@"Angband"];
+        [window setTitle:@"TGCAngband"];
     }
     else
     {
@@ -2327,7 +2327,7 @@ static errr cocoa_get_cmd(cmd_context context, bool wait)
 /* Return the directory into which we put data (save and config) */
 static NSString *get_data_directory(void)
 {
-    return [@"~/Documents/Angband/" stringByExpandingTildeInPath];
+    return [@"~/Documents/TGCAngband/" stringByExpandingTildeInPath];
 }
 
 /*

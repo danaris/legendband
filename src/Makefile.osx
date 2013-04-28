@@ -10,7 +10,7 @@ CC = clang
 LD = ld
 OPT ?= -O2
 
-NAME = Angband
+NAME = TGCAngband
 APPNAME = $(NAME).app
 EXE = angband
 
