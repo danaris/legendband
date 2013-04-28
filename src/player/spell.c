@@ -132,6 +132,23 @@ static int cmp_spell(const void *s1, const void *s2)
 /**
  * Collect spells from a book into the spells[] array.
  */
+int ability_collect_from_type(const ability_type type, int *spells)
+{
+	struct spell *sp;
+	int n_spells = 0;
+
+	for (sp = o_ptr->kind->spells; sp; sp = sp->next) {
+		spells[n_spells++] = sp->spell_index;
+	}
+
+	sort(spells, n_spells, sizeof(int), cmp_spell);
+
+	return n_spells;
+}
+
+/**
+ * Collect spells from a book into the spells[] array.
+ */
 int spell_collect_from_book(const object_type *o_ptr, int *spells)
 {
 	struct spell *sp;

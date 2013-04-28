@@ -149,6 +149,44 @@ static const menu_iter spell_menu_iter = {
 };
 
 /** Create and initialise a spell menu, given an object and a validity hook */
+static menu_type *spell_menu_no_book(const ability_type type,
+		bool (*is_valid)(int spell))
+{
+	menu_type *m = menu_new(MN_SKIN_SCROLL, &spell_menu_iter);
+	struct spell_menu_data *d = mem_alloc(sizeof *d);
+
+	region loc = { -60, 1, 60, -99 };
+
+	/* collect spells from object */
+	d->n_spells = spell_collect_from_book(o_ptr, d->spells);
+	if (d->n_spells == 0 || !spell_okay_list(is_valid, d->spells, d->n_spells))
+	{
+		mem_free(m);
+		mem_free(d);
+		return NULL;
+	}
+
+	/* copy across private data */
+	d->is_valid = is_valid;
+	d->selected_spell = -1;
+	d->browse = FALSE;
+
+	menu_setpriv(m, d->n_spells, d);
+
+	/* set flags */
+	m->header = "Name                             Lv Mana Fail Info";
+	m->flags = MN_CASELESS_TAGS;
+	m->selections = lower_case;
+	m->browse_hook = spell_menu_browser;
+
+	/* set size */
+	loc.page_rows = d->n_spells + 1;
+	menu_layout(m, &loc);
+
+	return m;
+}
+
+/** Create and initialise a spell menu, given an object and a validity hook */
 static menu_type *spell_menu_new(const object_type *o_ptr,
 		bool (*is_valid)(int spell))
 {
