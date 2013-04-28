@@ -259,6 +259,7 @@ static const char *get_pflag_desc(bitflag flag)
 		case PF_KNOW_MUSHROOM: return "Identifies mushrooms";
 		case PF_KNOW_ZAPPER: return "Identifies magic devices";
 		case PF_SEE_ORE: return "Senses ore/minerals";
+		case PF_SNEAK_ATTACK: return "Can sneak attack foes";
 		default: return "Undocumented pflag";
 	}
 }

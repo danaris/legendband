@@ -139,6 +139,41 @@ static int critical_norm(int weight, int plus, int dam, u32b *msg_type) {
 	}
 }
 
+/**
+ * Determine damage for critical hits from melee.
+ *
+ * Factor in weapon weight, total plusses, player level.
+ */
+static int critical_sneak(int weight, int plus, int dam, u32b *msg_type) {
+	int chance = weight + (p_ptr->state.to_h + plus) * 5 + p_ptr->lev * 3 + p_ptr->state.skills[SKILL_STEALTH] * 1000;
+	int power = weight + randint1(650) + p_ptr->lev * 20;
+
+	if (randint1(5000) > chance) {
+		*msg_type = MSG_HIT;
+		return dam;
+
+	} else if (power < 400) {
+		*msg_type = MSG_HIT_GOOD;
+		return 2 * dam + 5;
+
+	} else if (power < 700) {
+		*msg_type = MSG_HIT_GREAT;
+		return 2 * dam + 10;
+
+	} else if (power < 900) {
+		*msg_type = MSG_HIT_SUPERB;
+		return 3 * dam + 15;
+
+	} else if (power < 1300) {
+		*msg_type = MSG_HIT_HI_GREAT;
+		return 3 * dam + 20;
+
+	} else {
+		*msg_type = MSG_HIT_HI_SUPERB;
+		return 4 * dam + 20;
+	}
+}
+
 /* A list of the different hit types and their associated special message */
 static const struct {
 	u32b msg;
@@ -177,6 +212,9 @@ static bool py_attack_real(int y, int x, bool *fear) {
 	const char *hit_verb = "punch";
 	int dmg = 1;
 	u32b msg_type = MSG_HIT;
+	
+	/* Sneak attack */
+	bool sneak_attack = FALSE;
 
 	/* Extract monster name (or "it") */
 	monster_desc(m_name, sizeof(m_name), m_ptr, 0);
@@ -191,6 +229,13 @@ static bool py_attack_real(int y, int x, bool *fear) {
 	if (check_state(p_ptr, OF_AFRAID, p_ptr->state.flags)) {
 		msgt(MSG_AFRAID, "You are too afraid to attack %s!", m_name);
 		return FALSE;
+	}
+	
+	if (m_ptr->m_timed[MON_TMD_SLEEP]) {
+		chance += p_ptr->state.skills[SKILL_STEALTH] * p_ptr->lev;
+		if (player_has(PF_SNEAK_ATTACK)) {
+			sneak_attack = TRUE;
+		}
 	}
 
 	/* Disturb the monster */
@@ -227,7 +272,12 @@ static bool py_attack_real(int y, int x, bool *fear) {
 		dmg *= (best_s_ptr == NULL) ? 1 : best_s_ptr->mult;
 
 		dmg += o_ptr->to_d;
-		dmg = critical_norm(o_ptr->weight, o_ptr->to_h, dmg, &msg_type);
+		if (sneak_attack) {
+			hit_verb = "sneak attack";
+			dmg = critical_sneak(o_ptr->weight, o_ptr->to_h, dmg, &msg_type);
+		} else {
+			dmg = critical_norm(o_ptr->weight, o_ptr->to_h, dmg, &msg_type);
+		}
 
 		/* Learn by use for the weapon */
 		object_notice_attack_plusses(o_ptr);
